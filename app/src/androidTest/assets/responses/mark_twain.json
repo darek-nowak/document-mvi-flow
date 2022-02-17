@@ -1,0 +1,18 @@
+ {
+    "applicant": "Mark Twain",
+    "currentRole": "Big Data Developer",
+    "description": "Large Data Analysis",
+    "experience": [
+      {
+        "startDate": "02/2015",
+        "endDate": "",
+        "company": "HSBC",
+        "role": "Java Developer",
+        "responsibilities": [
+          "Data base population",
+          "Creating Services, Controllers for Web Services",
+          "Tutoring less experience members of a team"
+        ]
+      }
+    ]
+  }
