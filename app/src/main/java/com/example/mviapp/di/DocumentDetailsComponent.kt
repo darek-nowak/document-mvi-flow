@@ -2,10 +2,9 @@ package com.example.mviapp.di
 
 import androidx.lifecycle.ViewModel
 import com.example.mviapp.presentation.DocumentDetailsFragment
-import com.example.mviapp.viewmodel.DetailsViewModel
+import com.example.mviapp.viewmodel.DocumentDetailsViewModel
 import dagger.Binds
 import dagger.Module
-import dagger.Provides
 import dagger.Subcomponent
 import dagger.multibindings.IntoMap
 
@@ -23,6 +22,6 @@ interface DocumentDetailsComponent {
 abstract class DocumentDetailsModule {
     @Binds
     @IntoMap
-    @ViewModelKey(DetailsViewModel::class)
-    abstract fun provideDetailsViewModel(viewModel: DetailsViewModel): ViewModel
+    @ViewModelKey(DocumentDetailsViewModel::class)
+    abstract fun provideDetailsViewModel(viewModel: DocumentDetailsViewModel): ViewModel
 }

@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-class DetailsViewModel @Inject constructor(
+class DocumentDetailsViewModel @Inject constructor(
     private val detailsInteractor: DocumentDetailsInteractor
 ) :ViewModel() {
 

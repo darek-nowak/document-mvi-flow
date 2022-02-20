@@ -22,6 +22,8 @@ import com.example.mviapp.extensions.changeVisibility
 import com.example.mviapp.setUpAppBar
 import com.example.mviapp.viewmodel.DocumentsListViewModel
 import com.example.mviapp.viewmodel.DocumentsState
+import com.example.mviapp.viewmodel.SideEffect
+import com.example.mviapp.viewmodel.UiEvent
 import kotlinx.android.synthetic.main.fragment_documents.*
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
@@ -55,19 +57,38 @@ class DocumentsListFragment: Fragment(R.layout.fragment_documents) {
             .inject(this)
 
         if (savedInstanceState == null) {
-            viewModel.fetchDocuments()
+            viewModel.sendEvent(UiEvent.ScreenReady)
         }
 
         setupList()
         setUpToolbarTitle()
 
-        observeDocumentsListChanges()
+        collectStates()
+        collectSideEffects()
     }
 
-    private fun observeDocumentsListChanges() {
+    private fun setupList() {
+        documentsList.apply {
+            setHasFixedSize(true)
+            addItemDecoration(DividerItemDecoration(context, DividerItemDecoration.VERTICAL))
+            layoutManager = LinearLayoutManager(context)
+            adapter = documentsAdapter
+        }
+        documentsAdapter.onItemClicked = { documentSelected ->
+            viewModel.sendEvent(
+                UiEvent.ItemClicked(documentSelected.filename)
+            )
+        }
+    }
+
+    private fun setUpToolbarTitle() {
+        requireActivity().setUpAppBar(titleText = getString(R.string.title_documents))
+    }
+
+    private fun collectStates() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.documentsFlow.collect { state ->
+                viewModel.documentsState.collect { state ->
                     binding.renderView(state)
                     Timber.d("darek ${state.toString()}")
                 }
@@ -92,24 +113,24 @@ class DocumentsListFragment: Fragment(R.layout.fragment_documents) {
         }
     }
 
-    private fun setupList() {
-        documentsList.apply {
-            setHasFixedSize(true)
-            addItemDecoration(DividerItemDecoration(context, DividerItemDecoration.VERTICAL))
-            layoutManager = LinearLayoutManager(context)
-            adapter = documentsAdapter
-        }
-        documentsAdapter.onItemClicked = { documentSelected ->
-            DocumentDetailsFragment.attachIfNeeded(
-                R.id.documentContainer,
-                requireActivity().supportFragmentManager,
-                documentSelected.filename
-            )
+    private fun collectSideEffects() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.documentsSideEffect.collect { sideEffect ->
+                    when(sideEffect) {
+                        is SideEffect.NavigateToDetails -> attachDetailsFragment(sideEffect.filename)
+                    }
+                }
+            }
         }
     }
 
-    private fun setUpToolbarTitle() {
-        requireActivity().setUpAppBar(titleText = getString(R.string.title_documents))
+    private fun attachDetailsFragment(fileName: String) {
+        DocumentDetailsFragment.attachIfNeeded(
+            R.id.documentContainer,
+            requireActivity().supportFragmentManager,
+            fileName
+        )
     }
 
     private fun showData(data: List<CvDocumentInfo>) {

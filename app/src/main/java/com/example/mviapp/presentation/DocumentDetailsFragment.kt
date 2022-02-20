@@ -20,7 +20,7 @@ import com.example.mviapp.databinding.FragmentDetailsBinding
 import com.example.mviapp.extensions.changeVisibility
 import com.example.mviapp.setUpAppBar
 import com.example.mviapp.viewmodel.DetailsState
-import com.example.mviapp.viewmodel.DetailsViewModel
+import com.example.mviapp.viewmodel.DocumentDetailsViewModel
 import kotlinx.android.synthetic.main.fragment_details.*
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
@@ -34,7 +34,7 @@ class DocumentDetailsFragment: Fragment(R.layout.fragment_details) {
     private lateinit var binding: FragmentDetailsBinding
 
     private val detailsAdapter = DetailsAdapter()
-    private val viewModel: DetailsViewModel by viewModels { viewModelFactory }
+    private val viewModel: DocumentDetailsViewModel by viewModels { viewModelFactory }
 
     override fun onCreateView(
         inflater: LayoutInflater,
