@@ -22,8 +22,8 @@ import com.example.mviapp.extensions.changeVisibility
 import com.example.mviapp.setUpAppBar
 import com.example.mviapp.viewmodel.DocumentsListViewModel
 import com.example.mviapp.viewmodel.DocumentsState
-import com.example.mviapp.viewmodel.SideEffect
-import com.example.mviapp.viewmodel.UiEvent
+import com.example.mviapp.viewmodel.DocumentsSideEffect
+import com.example.mviapp.viewmodel.DocumentsUiEvent
 import kotlinx.android.synthetic.main.fragment_documents.*
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
@@ -57,7 +57,7 @@ class DocumentsListFragment: Fragment(R.layout.fragment_documents) {
             .inject(this)
 
         if (savedInstanceState == null) {
-            viewModel.sendEvent(UiEvent.ScreenReady)
+            viewModel.sendEvent(DocumentsUiEvent.ScreenReady)
         }
 
         setupList()
@@ -76,7 +76,7 @@ class DocumentsListFragment: Fragment(R.layout.fragment_documents) {
         }
         documentsAdapter.onItemClicked = { documentSelected ->
             viewModel.sendEvent(
-                UiEvent.ItemClicked(documentSelected.filename)
+                DocumentsUiEvent.ItemClicked(documentSelected.filename)
             )
         }
     }
@@ -90,7 +90,7 @@ class DocumentsListFragment: Fragment(R.layout.fragment_documents) {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.documentsState.collect { state ->
                     binding.renderView(state)
-                    Timber.d("darek ${state.toString()}")
+                    Timber.d("darek ${state}")
                 }
             }
         }
@@ -118,7 +118,7 @@ class DocumentsListFragment: Fragment(R.layout.fragment_documents) {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.documentsSideEffect.collect { sideEffect ->
                     when(sideEffect) {
-                        is SideEffect.NavigateToDetails -> attachDetailsFragment(sideEffect.filename)
+                        is DocumentsSideEffect.NavigateToDetails -> attachDetailsFragment(sideEffect.filename)
                     }
                 }
             }

@@ -20,6 +20,7 @@ import com.example.mviapp.databinding.FragmentDetailsBinding
 import com.example.mviapp.extensions.changeVisibility
 import com.example.mviapp.setUpAppBar
 import com.example.mviapp.viewmodel.DetailsState
+import com.example.mviapp.viewmodel.DetailsUiEvent
 import com.example.mviapp.viewmodel.DocumentDetailsViewModel
 import kotlinx.android.synthetic.main.fragment_details.*
 import kotlinx.coroutines.flow.collect
@@ -54,24 +55,23 @@ class DocumentDetailsFragment: Fragment(R.layout.fragment_details) {
             .inject(this)
 
         if (savedInstanceState == null) {
-            viewModel.fetchDetails(
+            viewModel.sendEvent(DetailsUiEvent.ScreenReady(
                 filename = requireArguments().getString(DOCUMENT_NAME_KEY)!!
-            )
+            ))
         }
-
 
         setupList()
         setUpToolbarTitle()
 
-        observeDetailsChanges()
+        collectStatesChanges()
     }
 
-    private fun observeDetailsChanges() {
+    private fun collectStatesChanges() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.detailsFlow.collect { state ->
+                viewModel.detailsState.collect { state ->
                     binding.renderView(state)
-                    Timber.d("darek ${state.toString()}")
+                    Timber.d("darek ${state}")
                 }
             }
         }

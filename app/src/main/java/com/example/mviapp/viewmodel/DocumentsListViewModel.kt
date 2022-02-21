@@ -11,29 +11,34 @@ import javax.inject.Inject
 class DocumentsListViewModel @Inject constructor(
     private val documentsInteractor: DocumentListsInteractor
 ) : ViewModel() {
+
+    private val _documentsEvent: MutableSharedFlow<DocumentsUiEvent> = MutableSharedFlow()
+
     private val _documentsState: MutableStateFlow<DocumentsState> = MutableStateFlow(DocumentsState.InProgress)
-    val documentsState = _documentsState as StateFlow<DocumentsState>
+    val documentsState = _documentsState.asStateFlow()
 
-    private val _documentsEvent: MutableSharedFlow<UiEvent> = MutableSharedFlow()
-
-    private val _documentsSideEffect: Channel<SideEffect> = Channel()
-    val documentsSideEffect: Flow<SideEffect> = _documentsSideEffect.receiveAsFlow()
+    private val _documentsSideEffect: Channel<DocumentsSideEffect> = Channel()
+    val documentsSideEffect: Flow<DocumentsSideEffect> = _documentsSideEffect.receiveAsFlow()
 
     init {
         collectUiEvents()
     }
 
-    fun sendEvent(event: UiEvent) {
+    fun sendEvent(event: DocumentsUiEvent) {
         viewModelScope.launch {
             _documentsEvent.emit(event)
         }
     }
 
-    private fun sendSideEffect(sideEffect: SideEffect) {
+    private fun sendSideEffect(sideEffect: DocumentsSideEffect) {
         viewModelScope.launch {  _documentsSideEffect.send(sideEffect) }
     }
 
     private fun setDocumentsState(state: DocumentsState) {
+        // or use update ?
+        // https://proandroiddev.com/make-sure-to-update-your-stateflow-safely-in-kotlin-9ad023db12ba
+        // set value is enough ?
+        // https://proandroiddev.com/livedata-vs-sharedflow-and-stateflow-in-mvvm-and-mvi-architecture-57aad108816d
         _documentsState.value = state // viewModelScope.launch { _documentsState.emit(state) } ??
     }
 
@@ -41,9 +46,9 @@ class DocumentsListViewModel @Inject constructor(
         viewModelScope.launch {
             _documentsEvent.collect { event ->
                 when(event) {
-                    UiEvent.ScreenReady -> fetchDocuments()
-                    is UiEvent.ItemClicked -> sendSideEffect(
-                        SideEffect.NavigateToDetails(event.filename)
+                    DocumentsUiEvent.ScreenReady -> fetchDocuments()
+                    is DocumentsUiEvent.ItemClicked -> sendSideEffect(
+                        DocumentsSideEffect.NavigateToDetails(event.filename)
                     )
                 }
             }
@@ -60,16 +65,16 @@ class DocumentsListViewModel @Inject constructor(
     // - Reducer(state)
     // - Renderer(view)
 
-    private fun fetchDocuments() {
-        if (_documentsState.value is DocumentsState.Documents) { return }
+    private suspend fun fetchDocuments() {
+        if (_documentsState.value is DocumentsState.Documents) {
+            return
+        }
 
-        viewModelScope.launch {
-            // processor -> result
-            setDocumentsState(DocumentsState.InProgress)
-            when(val result = documentsInteractor.getCvDocumentsList()) {
-                is Result.Success -> setDocumentsState(DocumentsState.Documents(result.data))
-                Result.Error -> setDocumentsState(DocumentsState.Error)
-            }
+        // processor -> result
+        setDocumentsState(DocumentsState.InProgress)
+        when (val result = documentsInteractor.getCvDocumentsList()) {
+            is Result.Success -> setDocumentsState(DocumentsState.Documents(result.data))
+            Result.Error -> setDocumentsState(DocumentsState.Error)
         }
     }
 }
@@ -80,11 +85,11 @@ sealed class DocumentsState {
     object InProgress : DocumentsState()
 }
 
-sealed class UiEvent {
-    object ScreenReady: UiEvent()
-    data class ItemClicked(val filename: String): UiEvent()
+sealed class DocumentsUiEvent {
+    object ScreenReady: DocumentsUiEvent()
+    data class ItemClicked(val filename: String): DocumentsUiEvent()
 }
 
-sealed class SideEffect {
-    data class NavigateToDetails(val filename: String): SideEffect()
+sealed class DocumentsSideEffect {
+    data class NavigateToDetails(val filename: String): DocumentsSideEffect()
 }
