@@ -39,6 +39,15 @@ internal class DocumentsListViewModelTest {
         }
     }
 
+    @Test
+    fun `navigate to details on list item clicked`() = runBlocking {
+        viewModel.documentsSideEffect.test {
+            viewModel.sendEvent(DocumentsUiEvent.ItemClicked("itemName"))
+
+            assertThat(awaitItem()).isEqualTo(DocumentsSideEffect.NavigateToDetails("itemName"))
+        }
+    }
+
     private companion object {
         val DOCUMENTS_LIST = listOf(CvDocumentInfo("sir_richard.json", "Sir Richard"))
     }

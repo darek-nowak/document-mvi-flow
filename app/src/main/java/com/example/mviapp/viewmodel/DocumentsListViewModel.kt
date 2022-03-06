@@ -66,9 +66,9 @@ class DocumentsListViewModel @Inject constructor(
     // - Renderer(view)
 
     private suspend fun fetchDocuments() {
-//        if (_documentsState.value is DocumentsState.Documents) {
-//            return
-//        }
+        if (_documentsState.value is DocumentsState.Documents) {
+            return
+        }
 
         // processor -> result
         setDocumentsState(DocumentsState.InProgress)
